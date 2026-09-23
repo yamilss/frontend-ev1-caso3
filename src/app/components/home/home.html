@@ -1,0 +1,82 @@
+<div class="landing-container">
+  <header class="hero">
+    <h1>Bienvenido a <span class="brand">RutaExpress</span></h1>
+    <p>Plataforma para la gestión de envíos, catálogo y logística.</p>
+  </header>
+
+  <!-- Estado 1: NO Autenticado -->
+  @if (!account) {
+    <div class="card">
+      <h2>Acceso al Sistema</h2>
+      <p>Inicia sesión con tus credenciales corporativas para continuar.</p>
+      <button type="button" class="btn btn-primary" (click)="login()">
+        Iniciar Sesión
+      </button>
+    </div>
+  }
+
+  <!-- Estado 2: Autenticado -->
+  @if (account) {
+    <div class="card">
+      <h2>Resumen de la Cuenta</h2>
+
+      <div class="user-info">
+        <p><strong>Nombre:</strong> {{ account.name || 'Sin nombre registrado' }}</p>
+        <p><strong>Correo:</strong> {{ account.username }}</p>
+        <p>
+          <strong>Rol:</strong>
+          <span class="badge">
+            @if (authService.userRoles().length > 0) {
+              {{ authService.userRoles().join(', ') }}
+            } @else {
+              Sin rol asignado
+            }
+          </span>
+        </p>
+
+        <!-- Advertencia cuando la cuenta no tiene rol de Admin o Cliente -->
+        @if (authService.userRoles().length === 0) {
+          <p style="color: #b45309; background: #fef3c7; padding: 8px 12px; border-radius: 6px; font-size: 0.85rem; margin-top: 10px;">
+            ⚠️ Tu usuario no tiene asignado un rol de <strong>Admin</strong> o <strong>Cliente</strong> en Azure AD. Contacta al administrador para habilitar tu acceso.
+          </p>
+        }
+      </div>
+
+      <div class="actions" style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px;">
+        <!-- Habilitado solo si posee un rol válido -->
+        <a routerLink="/dashboard" 
+           class="btn btn-primary" 
+           [style.pointer-events]="authService.userRoles().length === 0 ? 'none' : 'auto'"
+           [style.opacity]="authService.userRoles().length === 0 ? '0.5' : '1'">
+          Entrar a RutaExpress &rarr;
+        </a>
+
+        <!-- Botón para probar la API con JWT -->
+        <button type="button" class="btn btn-success" (click)="probarApi()" [disabled]="cargando()">
+          {{ cargando() ? 'Consultando...' : 'Probar API (200 OK)' }}
+        </button>
+
+        <button type="button" class="btn btn-secondary" (click)="logout()">
+          Cerrar sesión
+        </button>
+      </div>
+
+      <!-- Indicadores de respuesta de la API -->
+      @if (cargando()) {
+        <p style="margin-top: 15px; color: #2563eb;">Validando token JWT y consultando API...</p>
+      }
+
+      @if (mensajeApi) {
+        <div style="margin-top: 15px; padding: 10px 14px; background-color: #d1fae5; color: #065f46; border-radius: 6px; font-size: 0.85rem; word-break: break-all;">
+          <strong>Respuesta:</strong> {{ mensajeApi }}
+        </div>
+      }
+
+      @if (errorApi) {
+        <div style="margin-top: 15px; padding: 10px 14px; background-color: #fee2e2; color: #991b1b; border-radius: 6px; font-size: 0.85rem;">
+          <strong>Detalle:</strong> {{ errorApi }}
+        </div>
+      }
+    </div>
+  }
+</div>
